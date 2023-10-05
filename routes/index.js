@@ -10,4 +10,8 @@ router.get('/focus', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/pages/focus.html'));
 });
 
+router.get('/startTask', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/pages/startTask.html'));
+});
+
 module.exports = router;
