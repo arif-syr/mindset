@@ -2,6 +2,8 @@ $(document).ready(function () {
     $("#navbar").load("/pages/navbar.html");
     $("#footer").load("/pages/footer.html");
 
+    fetchTasks();
+
     let tasks = [];
     
     // // Form submission event
@@ -28,15 +30,39 @@ $(document).ready(function () {
         let taskDescription = $("#modalTaskDescription").val().trim();
         let taskDuration = $("#taskDuration").val().trim();
       
-        if (taskName && taskDescription && taskDuration) {
-          tasks.push({ name: taskName, description: taskDescription, duration: taskDuration });
-          updateTable();
-          $("#modalTaskName").val('');
-          $("#modalTaskDescription").val('');
-          $("#taskDuration").val('');
-          $("#taskModal").modal('hide'); // Close the modal
-        }
+        // if (taskName && taskDescription && taskDuration) {
+        //   tasks.push({ name: taskName, description: taskDescription, duration: taskDuration });
+        //   updateTable();
+        //   $("#modalTaskName").val('');
+        //   $("#modalTaskDescription").val('');
+        //   $("#taskDuration").val('');
+        //   $("#taskModal").modal('hide'); // Close the modal
+        // }
+
+        $.post('/addTask', { name: taskName, description: taskDescription, duration: taskDuration }, function (data) {
+          if (data.success) {
+            updateTable();
+            $("#modalTaskName").val('');
+            $("#modalTaskDescription").val('');
+            $("#taskDuration").val('');
+            $("#taskModal").modal('hide'); // Close the modal
+
+          } else {
+            alert('Failed to add task.');
+          }
+        });
       });
+
+      function fetchTasks() {
+        $.get('/getTasks', function(data) {
+            if (data.success) {
+                tasks = data.tasks;
+                updateTable();
+            } else {
+                alert('Failed to fetch tasks.');
+            }
+        });
+    }
 
     function updateTable() {
         let tableBody = $("#taskTableBody");
@@ -61,7 +87,7 @@ $(document).ready(function () {
 
     function attachEventHandlers() {
       // Start/Pause button handler
-      $(".start-pause").click(function() {
+      $(".start-pause").on('click', '.start-pause', function() {
           let btn = $(this);
           let index = btn.data("index");
           let status = btn.data("status");
@@ -91,7 +117,7 @@ $(document).ready(function () {
       });
   
       // Restart button handler
-      $(".restart").click(function() {
+      $(".restart").on('click', '.restart', function() {
           let index = $(this).data("index");
           let timerElement = $(`#timer-${index}`);
           let startPauseBtn = $(`.start-pause[data-index="${index}"]`);
