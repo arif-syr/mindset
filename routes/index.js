@@ -176,4 +176,16 @@ router.post('/login', passport.authenticate('local', {
   failureFlash: true             // allow flash messages
 }));
 
+app.delete('/deleteTask', (req, res) => {
+  const taskId = req.body.id;
+
+  collection.deleteOne({ _id: ObjectId(taskId) }, (err, result) => {
+      if (err) {
+          res.json({ success: false, message: 'Failed to delete task.' });
+      } else {
+          res.json({ success: true });
+      }
+  });
+});
+
 module.exports = router;
