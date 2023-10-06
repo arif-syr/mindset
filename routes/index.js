@@ -109,10 +109,10 @@ router.post('/addTask', ensureAuthenticated, async (req, res) => {
 
 router.get('/getTasks', ensureAuthenticated, async (req, res) => {
   try {
-      let tasks = req.user.tasks;
-      res.json({ success: true, tasks: tasks });
+    let tasks = req.user.tasks;
+    res.json({ success: true, tasks: tasks });
   } catch (err) {
-      res.json({ success: false, message: "Error occurred while fetching tasks." });
+    res.json({ success: false, message: "Error occurred while fetching tasks." });
   }
 });
 
@@ -122,26 +122,26 @@ router.get('/register', (req, res) => {
 
 router.post('/register', async (req, res) => {
   try {
-      const { email, password } = req.body;
+    const { email, password } = req.body;
 
-      // Check for existing user with the same email
-      const existingUser = await User.findOne({ email });
-      if (existingUser) {
-          return res.json({ success: false, message: "Email already in use." });
-      }
+    // Check for existing user with the same email
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.json({ success: false, message: "Email already in use." });
+    }
 
-      // Create a new user
-      const newUser = new User({
-          email,
-          password
-      });
+    // Create a new user
+    const newUser = new User({
+      email,
+      password
+    });
 
-      // Save the new user to the database
-      await newUser.save();
-      res.json({ success: true, message: "Registration successful" });
+    // Save the new user to the database
+    await newUser.save();
+    res.json({ success: true, message: "Registration successful" });
 
   } catch (error) {
-      res.json({ success: false, message: "Error occurred during registration." });
+    res.json({ success: false, message: "Error occurred during registration." });
   }
 });
 
@@ -155,19 +155,19 @@ function ensureAuthenticated(req, res, next) {
 }
 
 passport.use(new LocalStrategy({ usernameField: 'email' }, async (email, password, done) => {
-    try {
-        const user = await User.findOne({ email: email });
-        if (!user) {
-            return done(null, false, { message: 'Incorrect email.' });
-        }
-        
-        if (user.password !== password) {
-            return done(null, false, { message: 'Incorrect password.' });
-        }
-        return done(null, user);
-    } catch (err) {
-        return done(err);
+  try {
+    const user = await User.findOne({ email: email });
+    if (!user) {
+      return done(null, false, { message: 'Incorrect email.' });
     }
+
+    if (user.password !== password) {
+      return done(null, false, { message: 'Incorrect password.' });
+    }
+    return done(null, user);
+  } catch (err) {
+    return done(err);
+  }
 }));
 
 router.post('/login', passport.authenticate('local', {
@@ -180,12 +180,16 @@ app.delete('/deleteTask', (req, res) => {
   const taskId = req.body.id;
 
   collection.deleteOne({ _id: ObjectId(taskId) }, (err, result) => {
-      if (err) {
-          res.json({ success: false, message: 'Failed to delete task.' });
-      } else {
-          res.json({ success: true });
-      }
+    if (err) {
+      res.json({ success: false, message: 'Failed to delete task.' });
+    } else {
+      res.json({ success: true });
+    }
   });
+});
+
+router.get('/addiction', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/pages/addiction.html'));
 });
 
 module.exports = router;
