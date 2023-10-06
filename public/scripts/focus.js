@@ -5,23 +5,6 @@ $(document).ready(function () {
     fetchTasks();
 
     let tasks = [];
-    
-    // // Form submission event
-    // $("#taskForm").on('submit', function (e) {
-    //     e.preventDefault();
-        
-    //     // Get the task name
-    //     let taskName = $("#taskName").val().trim();
-    //     let taskDescription = $("#taskDescription").val().trim();
-        
-    //     // Check if taskName is not empty
-    //     if (taskName && taskDescription) {
-    //         tasks.push({ name: taskName, description: taskDescription });
-    //         updateTable();
-    //         $("#taskName").val(''); // Clear the input field
-    //         $("#taskDescription").val('');
-    //     }
-    // });
 
     $("#modalTaskForm").on('submit', function (e) {
         e.preventDefault();
@@ -29,15 +12,6 @@ $(document).ready(function () {
         let taskName = $("#modalTaskName").val().trim();
         let taskDescription = $("#modalTaskDescription").val().trim();
         let taskDuration = $("#taskDuration").val().trim();
-      
-        // if (taskName && taskDescription && taskDuration) {
-        //   tasks.push({ name: taskName, description: taskDescription, duration: taskDuration });
-        //   updateTable();
-        //   $("#modalTaskName").val('');
-        //   $("#modalTaskDescription").val('');
-        //   $("#taskDuration").val('');
-        //   $("#taskModal").modal('hide'); // Close the modal
-        // }
 
         $.post('/addTask', { name: taskName, description: taskDescription, duration: taskDuration }, function (data) {
           if (data.success) {
@@ -82,54 +56,51 @@ $(document).ready(function () {
                        </tr>`;
             tableBody.append(row);
           });
-          attachEventHandlers();
     }
 
-    function attachEventHandlers() {
-      // Start/Pause button handler
-      $(".start-pause").on('click', '.start-pause', function() {
-          let btn = $(this);
-          let index = btn.data("index");
-          let status = btn.data("status");
-          let timerElement = $(`#timer-${index}`);
-          let duration = tasks[index].duration * 60;  
+    $('#taskTableBody').on('click', '.start-pause', function() {
+      let btn = $(this);
+      let index = btn.data("index");
+      let status = btn.data("status");
+      let timerElement = $(`#timer-${index}`);
+      let duration = tasks[index].duration * 60;
   
-          if (status === "start") {
-              btn.data("status", "pause");
-              btn.text("Pause");
-              tasks[index].interval = setInterval(function() {
-                  if (duration > 0) {
-                      duration--;
-                      let minutes = Math.floor(duration / 60);
-                      let seconds = duration % 60;
-                      timerElement.text(`${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
-                  } else {
-                      clearInterval(tasks[index].interval);
-                      btn.text("Done");
-                      btn.prop("disabled", true);
-                  }
-              }, 1000);
-          } else {
-              btn.data("status", "start");
-              btn.text("Start");
-              clearInterval(tasks[index].interval);
-          }
-      });
+      if (status === "start") {
+          btn.data("status", "pause");
+          btn.text("Pause");
+          tasks[index].interval = setInterval(function() {
+              if (duration > 0) {
+                  duration--;
+                  let minutes = Math.floor(duration / 60);
+                  let seconds = duration % 60;
+                  timerElement.text(`${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+              } else {
+                  clearInterval(tasks[index].interval);
+                  btn.text("Done");
+                  btn.prop("disabled", true);
+              }
+          }, 1000);
+      } else {
+          btn.data("status", "start");
+          btn.text("Start");
+          clearInterval(tasks[index].interval);
+      }
+  });
   
-      // Restart button handler
-      $(".restart").on('click', '.restart', function() {
-          let index = $(this).data("index");
-          let timerElement = $(`#timer-${index}`);
-          let startPauseBtn = $(`.start-pause[data-index="${index}"]`);
-          
-          if (tasks[index].interval) {
-              clearInterval(tasks[index].interval);
-          }
+  // Similarly, use '#taskTableBody' for the restart button event delegation
+  $('#taskTableBody').on('click', '.restart', function() {
+      let index = $(this).data("index");
+      let timerElement = $(`#timer-${index}`);
+      let startPauseBtn = $(`.start-pause[data-index="${index}"]`);
   
-          timerElement.text("00:00");
-          startPauseBtn.text("Start");
-          startPauseBtn.data("status", "start");
-          startPauseBtn.prop("disabled", false);
-      });
-  }
+      if (tasks[index].interval) {
+          clearInterval(tasks[index].interval);
+      }
+  
+      timerElement.text("00:00");
+      startPauseBtn.text("Start");
+      startPauseBtn.data("status", "start");
+      startPauseBtn.prop("disabled", false);
+  });
+
 });
