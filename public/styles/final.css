@@ -2,20 +2,31 @@ html {
     height: 100%;
 }
 
-.navbar{
-    background-color: #ffffff !important; 
+.navbar {
+    background-color: #ffffff !important;
 }
 
 footer {
-    background-color: #ffffff; 
+    background-color: #ffffff;
 }
-  
+
 body {
     min-height: 100%;
     display: flex;
     flex-direction: column;
 }
-  
+
 #content-wrapper {
     flex: 1;
+}
+
+#addictionData {
+    width: 60%;
+    /* Adjust as needed */
+    margin: 0 auto;
+}
+
+#addictionData th,
+#addictionData td {
+    border: none !important;
 }

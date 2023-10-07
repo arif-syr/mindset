@@ -4,17 +4,21 @@ $(document).ready(function () {
     $.get('/getAddiction', function (result) {
         if (result.success) {
             const data = result.data;
-            const html = `
-                <h3>Addiction: ${data.addiction_name}</h3>
-                <p>Quit Date: ${data.quit_date}</p>
-                <p>Savings: ${data.savings_money}</p>
-                <p>Phone: ${data.phone}</p>
-                <p>Reasons: ${data.reasons}</p>
-            `;
-            $('#addictionData').html(html);
 
             let quitDate = new Date(data.quit_date);
             let now = new Date();
+            let daysElapsed = Math.ceil((now - quitDate) / (1000 * 60 * 60 * 24));
+            let savingsDisplay = "";
+            let timeElapsedDisplay = "";
+
+            if (quitDate > now) {
+                savingsDisplay = `$${data.savings_money}/day`;
+            } else {
+                savingsDisplay = `$${data.savings_money * daysElapsed} saved so far`;
+            }
+
+            $('#addictionName').text(`Addiction: ${data.addiction_name}`);
+            updateAddictionTableDisplay(data, savingsDisplay, "N/A");
 
             if (quitDate < now) {
                 setInterval(function () {
@@ -31,13 +35,41 @@ $(document).ready(function () {
                     diff -= mins * (1000 * 60);
 
                     let secs = Math.floor(diff / (1000));
+                    const formattedSecs = secs.toString().padStart(2, '0');
 
-                    document.getElementById('timerDisplay').innerText = `${days} Days, ${hours}:${mins}:${secs} elapsed since quit date`;
+                    timeElapsedDisplay = `${days} Days, ${hours}:${mins}:${formattedSecs}`;
+
+                    updateAddictionTableDisplay(data, savingsDisplay, timeElapsedDisplay);
+
                 }, 1000);
-            } else {
-                document.getElementById('timerDisplay').innerText = "N/A";
             }
         }
     });
+
+    function updateAddictionTableDisplay(data, savingsDisplay, timeElapsedDisplay) {
+        const tableHtml = `
+            <thead>
+                <tr>
+                    <th>Quit Date</th>
+                    <th>Time Elapsed</th>
+                    <th>Savings</th>
+                    <th>Emergency Contact</th>
+                    <th>Reasons</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>${data.quit_date}</td>
+                    <td>${timeElapsedDisplay}</td>
+                    <td>${savingsDisplay}</td>
+                    <td>${data.phone}</td>
+                    <td>${data.reasons}</td>
+                </tr>
+            </tbody>
+        `;
+
+        $('#addictionData').html(tableHtml);
+    }
+
 
 });
