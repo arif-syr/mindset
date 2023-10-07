@@ -51,7 +51,7 @@ $(document).ready(function () {
                          <th scope="row">${index + 1}</th>
                          <td>${task.name}</td>
                          <td>${task.description}</td>
-                         <td>${task.duration} hours</td>
+                         <td>${task.duration} minutes</td>
                          <td><span id="timer-${index}">00:00</span></td>
                          <td>
                          <button class="btn btn-success start-pause" data-index="${index}" data-status="start">Start</button>
