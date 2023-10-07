@@ -8,7 +8,7 @@ $(document).ready(function () {
 });
 
 function fetchNutritionData(query) {
-  const API_KEY = 'h2vuZbeahobNA72PQX0a5pGfeXrekXHQ4AnbQmBK'; // Replace with your USDA API Key
+  const API_KEY = 'h2vuZbeahobNA72PQX0a5pGfeXrekXHQ4AnbQmBK';
   const url = `https://api.nal.usda.gov/fdc/v1/foods/search?api_key=${API_KEY}&query=${query}&pageSize=5`;
 
   $.get(url, function (data) {

@@ -23,7 +23,7 @@ $(document).ready(function () {
         $("#modalTaskName").val('');
         $("#modalTaskDescription").val('');
         $("#taskDuration").val('');
-        $("#taskModal").modal('hide'); // Close the modal
+        $("#taskModal").modal('hide');
 
       } else {
         alert('Failed to add task.');
@@ -44,7 +44,7 @@ $(document).ready(function () {
 
   function updateTable() {
     let tableBody = $("#taskTableBody");
-    tableBody.empty(); // Clear current rows
+    tableBody.empty();
 
     tasks.forEach((task, index) => {
       let row = `<tr>
@@ -92,7 +92,6 @@ $(document).ready(function () {
     }
   });
 
-  // Similarly, use '#taskTableBody' for the restart button event delegation
   $('#taskTableBody').on('click', '.restart', function () {
     let index = $(this).data("index");
     let timerElement = $(`#timer-${index}`);
@@ -121,7 +120,7 @@ $(document).ready(function () {
         success: function (data) {
           if (data.success) {
             alert('Task deleted successfully.');
-            fetchTasks(); // Refetch the tasks to update the UI
+            fetchTasks();
           } else {
             alert('Failed to delete task.');
           }

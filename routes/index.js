@@ -132,19 +132,16 @@ router.post('/register', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Check for existing user with the same email
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.json({ success: false, message: "Email already in use." });
     }
 
-    // Create a new user
     const newUser = new User({
       email,
       password
     });
 
-    // Save the new user to the database
     await newUser.save();
     res.json({ success: true, message: "Registration successful" });
 
@@ -179,9 +176,9 @@ passport.use(new LocalStrategy({ usernameField: 'email' }, async (email, passwor
 }));
 
 router.post('/login', passport.authenticate('local', {
-  successRedirect: '/dashboard', // redirect to the secure profile section
-  failureRedirect: '/login',     // redirect back to the login page if there is an error
-  failureFlash: true             // allow flash messages
+  successRedirect: '/dashboard',
+  failureRedirect: '/login',
+  failureFlash: true
 }));
 
 router.delete('/deleteTask', ensureAuthenticated, async (req, res) => {
@@ -220,7 +217,7 @@ router.get('/getAddiction', ensureAuthenticated, (req, res) => {
 
 router.post('/searchNutrition', async (req, res) => {
   const query = req.body.query;
-  const API_KEY = 'YOUR_API_KEY'; // Replace with your USDA API Key
+  const API_KEY = 'YOUR_API_KEY';
   const url = `https://api.nal.usda.gov/fdc/v1/foods/search?api_key=${API_KEY}&query=${query}&pageSize=5`;
 
   try {
