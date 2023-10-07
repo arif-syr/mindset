@@ -215,19 +215,4 @@ router.get('/getAddiction', ensureAuthenticated, (req, res) => {
   }
 });
 
-router.post('/searchNutrition', async (req, res) => {
-  const query = req.body.query;
-  const API_KEY = 'YOUR_API_KEY';
-  const url = `https://api.nal.usda.gov/fdc/v1/foods/search?api_key=${API_KEY}&query=${query}&pageSize=5`;
-
-  try {
-    const response = await fetch(url);
-    const data = await response.json();
-    res.json(data);
-  } catch (error) {
-    res.status(500).json({ success: false, message: 'Failed to fetch nutrition data.' });
-  }
-});
-
-
 module.exports = router;
