@@ -76,6 +76,10 @@ router.get('/focus', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/pages/focus.html'));
 });
 
+router.get('/pomodoro', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/pages/pomodoro.html'));
+});
+
 router.get('/startTask', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/pages/startTask.html'));
 });
@@ -176,20 +180,24 @@ router.post('/login', passport.authenticate('local', {
   failureFlash: true             // allow flash messages
 }));
 
-app.delete('/deleteTask', (req, res) => {
+router.delete('/deleteTask', ensureAuthenticated, async (req, res) => {
+  console.log("DELETE endpoint hit");
   const taskId = req.body.id;
-
-  collection.deleteOne({ _id: ObjectId(taskId) }, (err, result) => {
-    if (err) {
-      res.json({ success: false, message: 'Failed to delete task.' });
-    } else {
-      res.json({ success: true });
-    }
-  });
+  
+  try {
+    const user = await User.findById(req.user._id);
+    user.tasks = user.tasks.filter(task => task._id.toString() !== taskId);
+    await user.save();
+    res.json({ success: true });
+  } catch (err) {
+    res.json({ success: false, message: 'Failed to delete task.' });
+  }
 });
 
 router.get('/addiction', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/pages/addiction.html'));
 });
+
+
 
 module.exports = router;
