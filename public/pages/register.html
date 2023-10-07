@@ -93,9 +93,9 @@
             e.preventDefault();
             $.post('/register', $(this).serialize(), function (data) {
                 if (data.success) {
-                    window.location.href = '/login'; // Redirect to login page
+                    window.location.href = '/login'; 
                 } else {
-                    alert('Registration failed.'); // Show an error message
+                    alert('Registration failed.'); 
                 }
             });
         });
