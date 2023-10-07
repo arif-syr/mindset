@@ -41,9 +41,9 @@ $(document).ready(function () {
                 const formattedHours = hours.toString().padStart(2, '0');
 
                 if (quitDate < now) {
-                    timeElapsedDisplay = `${days} Days, ${formattedHours}:${formattedMins}:${formattedSecs}`;
+                    timeElapsedDisplay = `${days} days, ${formattedHours}:${formattedMins}:${formattedSecs}`;
                 } else {
-                    timeElapsedDisplay = `${days} Days until quit date.`
+                    timeElapsedDisplay = `${days + 1} days until quit date.` // Adding 1 because days is floored
                 }
 
                 updateAddictionTableDisplay(data, savingsDisplay, timeElapsedDisplay);
@@ -82,7 +82,7 @@ $(document).ready(function () {
         if (quitDate > now) {
             savingsDisplay = `$${savings_money}/day`;
         } else {
-            savingsDisplay = `$${savings_money * daysElapsed} saved so far`;
+            savingsDisplay = `$${savings_money * (daysElapsed)} saved so far`;
         }
         return savingsDisplay;
     }
