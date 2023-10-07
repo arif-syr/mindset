@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Pomodoro Timer</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/styles/final.css">
+</head>
+
+<body style="background-color: rgb(212, 188, 188)">
+    <div id="navbar"></div>
+    <div id="content-wrapper" class="container mt-5">
+        <div class="text-center">
+            <button class="btn btn-outline-light" id="pomodoroBtn">Pomodoro</button>
+            <button class="btn btn-outline-light" id="shortBreakBtn">Short Break</button>
+            <button class="btn btn-outline-light" id="longBreakBtn">Long Break</button>
+        </div>
+
+        <div class="mt-5 text-center">
+            <div class="rounded-square" style="background-color: white; width: 200px; height: 200px; margin: 0 auto; line-height: 200px;">
+                <span id="timer">25:00</span>
+            </div>
+            <button class="btn btn-light mt-3" id="startBtn" style="color: red;">Start</button>
+        </div>
+    </div>
+    <div id="footer"></div>
+    <script src="/scripts/pomodoro.js"></script>
+</body>
+</html>
