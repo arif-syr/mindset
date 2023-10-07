@@ -7,44 +7,48 @@ $(document).ready(function () {
 
             let quitDate = new Date(data.quit_date);
             let now = new Date();
-            let daysElapsed = Math.ceil((now - quitDate) / (1000 * 60 * 60 * 24));
             let savingsDisplay = "";
             let timeElapsedDisplay = "";
 
-            if (quitDate > now) {
-                savingsDisplay = `$${data.savings_money}/day`;
-            } else {
-                savingsDisplay = `$${data.savings_money * daysElapsed} saved so far`;
-            }
+            // if (quitDate > now) {
+            //     savingsDisplay = `$${data.savings_money}/day`;
+            // } else {
+            //     savingsDisplay = `$${data.savings_money * daysElapsed} saved so far`;
+            // }
 
             $('#addictionName').text(`Addiction: ${data.addiction_name}`);
             updateAddictionTableDisplay(data, savingsDisplay, "N/A");
 
-            if (quitDate < now) {
-                setInterval(function () {
-                    now = new Date();
-                    let diff = Math.abs(now - quitDate);
+            setInterval(function () {
+                const timeUTC = new Date();
+                const offset = 7 * 60 * 60 * 1000; // 7 hours difference from UTC
+                const now = new Date(timeUTC - offset);
+                savingsDisplay = createSavingsDisplay(data.savings_money, quitDate, now);
+                let diff = Math.abs(now - quitDate);
 
-                    let days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                    diff -= days * (1000 * 60 * 60 * 24);
+                let days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                diff -= days * (1000 * 60 * 60 * 24);
 
-                    let hours = Math.floor(diff / (1000 * 60 * 60));
-                    diff -= hours * (1000 * 60 * 60);
+                let hours = Math.floor(diff / (1000 * 60 * 60));
+                diff -= hours * (1000 * 60 * 60);
 
-                    let mins = Math.floor(diff / (1000 * 60));
-                    diff -= mins * (1000 * 60);
+                let mins = Math.floor(diff / (1000 * 60));
+                diff -= mins * (1000 * 60);
 
-                    let secs = Math.floor(diff / (1000));
-                    const formattedSecs = secs.toString().padStart(2, '0');
-                    const formattedMins = mins.toString().padStart(2, '0');
-                    const formattedHours = hours.toString().padStart(2, '0');
+                let secs = Math.floor(diff / (1000));
+                const formattedSecs = secs.toString().padStart(2, '0');
+                const formattedMins = mins.toString().padStart(2, '0');
+                const formattedHours = hours.toString().padStart(2, '0');
 
+                if (quitDate < now) {
                     timeElapsedDisplay = `${days} Days, ${formattedHours}:${formattedMins}:${formattedSecs}`;
+                } else {
+                    timeElapsedDisplay = `${days} Days until quit date.`
+                }
 
-                    updateAddictionTableDisplay(data, savingsDisplay, timeElapsedDisplay);
+                updateAddictionTableDisplay(data, savingsDisplay, timeElapsedDisplay);
 
-                }, 1000);
-            }
+            }, 1000);
         }
     });
 
@@ -71,6 +75,16 @@ $(document).ready(function () {
         `;
 
         $('#addictionData').html(tableHtml);
+    }
+
+    function createSavingsDisplay(savings_money, quitDate, now) {
+        let daysElapsed = Math.ceil((now - quitDate) / (1000 * 60 * 60 * 24));
+        if (quitDate > now) {
+            savingsDisplay = `$${savings_money}/day`;
+        } else {
+            savingsDisplay = `$${savings_money * daysElapsed} saved so far`;
+        }
+        return savingsDisplay;
     }
 
 
