@@ -68,6 +68,10 @@ router.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/pages/dashboard.html'));
 });
 
+router.get('/nutrition', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/pages/nutrition.html'));
+});
+
 router.get('/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/pages/dashboard.html'));
 });
@@ -213,5 +217,20 @@ router.get('/getAddiction', ensureAuthenticated, (req, res) => {
     res.json({ success: false, message: "No addiction data found." });
   }
 });
+
+router.post('/searchNutrition', async (req, res) => {
+  const query = req.body.query;
+  const API_KEY = 'YOUR_API_KEY'; // Replace with your USDA API Key
+  const url = `https://api.nal.usda.gov/fdc/v1/foods/search?api_key=${API_KEY}&query=${query}&pageSize=5`;
+
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to fetch nutrition data.' });
+  }
+});
+
 
 module.exports = router;

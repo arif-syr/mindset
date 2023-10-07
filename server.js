@@ -11,17 +11,17 @@ const session = require('express-session');
 
 const passport = require('passport');
 
-app.use(session({ 
-    secret: 'secretKey', 
-    resave: false, 
-    saveUninitialized: false 
+app.use(session({
+    secret: 'secretKey',
+    resave: false,
+    saveUninitialized: false
 }));
 
 app.use(passport.initialize());
 app.use(passport.session());
 
 app.use(bodyParser.urlencoded({
-	extended: true
+    extended: true
 }));
 
 // Static files
@@ -31,5 +31,5 @@ app.use('/', routes);
 
 // Start the Server
 app.listen(config.PORT, config.HOST, () => {
-	console.log(`Server started on http://${config.HOST}:${config.PORT}`);
+    console.log(`Server started on http://${config.HOST}:${config.PORT}`);
 });
