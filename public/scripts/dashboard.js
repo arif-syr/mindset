@@ -36,8 +36,10 @@ $(document).ready(function () {
 
                     let secs = Math.floor(diff / (1000));
                     const formattedSecs = secs.toString().padStart(2, '0');
+                    const formattedMins = mins.toString().padStart(2, '0');
+                    const formattedHours = hours.toString().padStart(2, '0');
 
-                    timeElapsedDisplay = `${days} Days, ${hours}:${mins}:${formattedSecs}`;
+                    timeElapsedDisplay = `${days} Days, ${formattedHours}:${formattedMins}:${formattedSecs}`;
 
                     updateAddictionTableDisplay(data, savingsDisplay, timeElapsedDisplay);
 
