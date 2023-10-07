@@ -183,7 +183,7 @@ router.post('/login', passport.authenticate('local', {
 router.delete('/deleteTask', ensureAuthenticated, async (req, res) => {
   console.log("DELETE endpoint hit");
   const taskId = req.body.id;
-  
+
   try {
     const user = await User.findById(req.user._id);
     user.tasks = user.tasks.filter(task => task._id.toString() !== taskId);
@@ -198,6 +198,20 @@ router.get('/addiction', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/pages/addiction.html'));
 });
 
+let userAddiction = null;
 
+router.post('/saveAddiction', ensureAuthenticated, (req, res) => {
+  const { addiction_name, quit_date, savings_money, phone, reasons } = req.body;
+  userAddiction = { addiction_name, quit_date, savings_money, phone, reasons };
+  res.json({ success: true });
+});
+
+router.get('/getAddiction', ensureAuthenticated, (req, res) => {
+  if (userAddiction) {
+    res.json({ success: true, data: userAddiction });
+  } else {
+    res.json({ success: false, message: "No addiction data found." });
+  }
+});
 
 module.exports = router;
