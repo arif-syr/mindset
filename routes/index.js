@@ -26,6 +26,11 @@ const userSchema = new mongoose.Schema({
       description: String,
       duration: Number
     }
+  ],
+  sleepSchedule: [{
+    bedtime: String,
+    waketime: String
+  }
   ]
 });
 
@@ -126,8 +131,9 @@ router.post('/saveSleepSchedule', ensureAuthenticated, async (req, res) => {
     req.user.sleepSchedule.push({ bedtime, waketime });
     await req.user.save();
     res.json({ success: true });
+    console.log(req.user.sleepSchedule); 
   } catch (err) {
-    res.json({ success: false, message: 'Failed to save sleep schedule.' });
+    res.json({ success: false, message: 'Failed to save sleep schedule.' +err});
   }
 });
 
