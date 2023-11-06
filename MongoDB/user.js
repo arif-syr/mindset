@@ -9,6 +9,11 @@ const userSchema = new mongoose.Schema({
       description: String,
       duration: Number
     }
+  ], 
+  sleepSchedule: [{
+    bedtime: String,
+    waketime: String
+  }
   ]
 });
 

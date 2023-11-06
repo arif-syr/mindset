@@ -120,6 +120,17 @@ router.post('/addTask', ensureAuthenticated, async (req, res) => {
   }
 });
 
+router.post('/saveSleepSchedule', ensureAuthenticated, async (req, res) => {
+  const { bedtime, waketime } = req.body;
+  try {
+    req.user.sleepSchedule.push({ bedtime, waketime });
+    await req.user.save();
+    res.json({ success: true });
+  } catch (err) {
+    res.json({ success: false, message: 'Failed to save sleep schedule.' });
+  }
+});
+
 router.get('/getTasks', ensureAuthenticated, async (req, res) => {
   try {
     let tasks = req.user.tasks;
@@ -217,17 +228,6 @@ router.get('/getAddiction', ensureAuthenticated, (req, res) => {
     res.json({ success: true, data: userAddiction });
   } else {
     res.json({ success: false, message: "No addiction data found." });
-  }
-});
-
-router.post('/saveSleepSchedule', ensureAuthenticated, async (req, res) => {
-  const { bedtime, waketime } = req.body;
-  try {
-    req.user.sleepSchedule = { bedtime, waketime };
-    await req.user.save();
-    res.json({ success: true });
-  } catch (err) {
-    res.json({ success: false, message: 'Failed to save sleep schedule.' });
   }
 });
 
