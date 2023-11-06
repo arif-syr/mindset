@@ -77,6 +77,34 @@ $(document).ready(function () {
         $('#addictionData').html(tableHtml);
     }
 
+    function updateSleepTableDisplay(sleepSchedule) {
+        console.log("from dashboard.js: " +sleepSchedule)
+        let tableRows = sleepSchedule.map((schedule) => {
+            return `
+                <tr>
+                    <td>${schedule.bedtime}</td>
+                    <td>${schedule.waketime}</td>
+                </tr>
+            `;
+        }).join('');
+
+        const tableHtml = `
+            <thead>
+                <tr>
+                    <th>Bedtime</th>
+                    <th>Waketime</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${tableRows}
+            </tbody>
+        `;
+
+        $('#sleepData').html(tableHtml);
+    }
+
+    
+
     function createSavingsDisplay(savings_money, quitDate, now) {
         let daysElapsed = Math.ceil((now - quitDate) / (1000 * 60 * 60 * 24));
         if (quitDate > now) {
@@ -87,5 +115,16 @@ $(document).ready(function () {
         return savingsDisplay;
     }
 
+    function fetchSleep() {
+        $.get('/getSleep', function (result) {
+            if (result.success) {
+                const sleepSchedule = result.sleepSchedule;
+                updateSleepTableDisplay(sleepSchedule);
+            } else {
+                alert('Failed to fetch sleep data.');
+            }
+        });
+    }
+    fetchSleep();
 
 });

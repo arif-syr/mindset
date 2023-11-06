@@ -146,6 +146,15 @@ router.get('/getTasks', ensureAuthenticated, async (req, res) => {
   }
 });
 
+router.get('/getSleep', ensureAuthenticated, async (req, res) => {
+  try {
+    let sleepSchedule = req.user.sleepSchedule;
+    res.json({ success: true, sleepSchedule: sleepSchedule });
+  } catch (err) {
+    res.json({ success: false, message: "Error occurred while fetching sleepSchedule." });
+  }
+});
+
 router.get('/register', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/pages/register.html'));
 });
