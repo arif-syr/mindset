@@ -80,6 +80,11 @@ router.get('/focus', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/pages/focus.html'));
 });
 
+router.get('/sleep', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/pages/sleep.html'));
+});
+
+
 router.get('/pomodoro', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/pages/pomodoro.html'));
 });
@@ -214,5 +219,17 @@ router.get('/getAddiction', ensureAuthenticated, (req, res) => {
     res.json({ success: false, message: "No addiction data found." });
   }
 });
+
+router.post('/saveSleepSchedule', ensureAuthenticated, async (req, res) => {
+  const { bedtime, waketime } = req.body;
+  try {
+    req.user.sleepSchedule = { bedtime, waketime };
+    await req.user.save();
+    res.json({ success: true });
+  } catch (err) {
+    res.json({ success: false, message: 'Failed to save sleep schedule.' });
+  }
+});
+
 
 module.exports = router;
