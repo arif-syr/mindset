@@ -38,7 +38,11 @@ const userSchema = new mongoose.Schema({
     savings_money: String,
     phone: String,
     reasons: String
-  }]
+  }],
+  bedtimeRoutine: {
+    days: [String],
+    weekStarting: Date
+  }
 });
 
 const User = mongoose.model('User', userSchema);
@@ -177,6 +181,38 @@ router.get('/getSleep', ensureAuthenticated, async (req, res) => {
     res.json({ success: true, sleepSchedule: sleepSchedule });
   } catch (err) {
     res.json({ success: false, message: "Error occurred while fetching sleepSchedule." });
+  }
+});
+
+router.post('/saveBedtimeRoutine', ensureAuthenticated, async (req, res) => {
+  const { days } = req.body; 
+  const startOfWeek = new Date(); 
+  startOfWeek.setUTCHours(0, 0, 0, 0);
+  startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay() + 1); 
+
+  try {
+    req.user.bedtimeRoutine = {
+      days: days,
+      weekStarting: startOfWeek
+    };
+    await req.user.save();
+    res.json({ success: true });
+  } catch (err) {
+    res.json({ success: false, message: 'Failed to save bedtime routine.' });
+  }
+});
+
+const cron = require('node-cron');
+
+cron.schedule('0 0 * * 1', async () => { // Runs every Monday at 00:00
+  try {
+    // Clear bedtime routine for all users
+    await User.updateMany({}, {
+      $set: { 'bedtimeRoutine.days': [], 'bedtimeRoutine.weekStarting': new Date() }
+    });
+    console.log('Bedtime routine data reset for all users.');
+  } catch (err) {
+    console.error('Failed to reset bedtime routine data:', err);
   }
 });
 

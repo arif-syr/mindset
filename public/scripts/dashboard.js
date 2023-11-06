@@ -127,4 +127,40 @@ $(document).ready(function () {
     }
     fetchSleep();
 
+    function createBedtimeRoutineForm() {
+        const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        let checkboxesHtml = daysOfWeek.map(day => `
+          <input type="checkbox" id="${day}" name="bedtimeRoutineDays" value="${day}">
+          <label for="${day}">${day}</label><br>
+        `).join('');
+      
+        const formHtml = `
+          <form id="bedtimeRoutineForm">
+            ${checkboxesHtml}
+            <button type="submit">Save Routine</button>
+          </form>
+        `;
+        $('#bedtimeRoutineContainer').html(formHtml);
+      
+        $('#bedtimeRoutineForm').on('submit', function(e) {
+          e.preventDefault();
+          const selectedDays = $('input[name="bedtimeRoutineDays"]:checked').map(function() {
+            return this.value;
+          }).get();
+      
+          saveBedtimeRoutine(selectedDays);
+        });
+      }
+      
+      function saveBedtimeRoutine(days) {
+        $.post('/saveBedtimeRoutine', { days: days }, function(result) {
+          if (result.success) {
+            alert('Bedtime routine saved successfully!');
+          } else {
+            alert('Failed to save bedtime routine.');
+          }
+        });
+      }
+
+      createBedtimeRoutineForm()
 });
