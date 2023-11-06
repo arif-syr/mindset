@@ -160,7 +160,6 @@ router.post('/saveSleepSchedule', ensureAuthenticated, async (req, res) => {
     req.user.sleepSchedule.push({ bedtime, waketime });
     await req.user.save();
     res.json({ success: true });
-    console.log(req.user.sleepSchedule); 
   } catch (err) {
     res.json({ success: false, message: 'Failed to save sleep schedule.' +err});
   }
@@ -288,6 +287,7 @@ router.delete('/deleteTask', ensureAuthenticated, async (req, res) => {
 });
 
 router.get('/getAddiction', ensureAuthenticated, (req, res) => {
+  let userAddiction = req.user.addiction;
   if (userAddiction) {
     res.json({ success: true, data: userAddiction });
   } else {

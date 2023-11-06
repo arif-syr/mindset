@@ -3,56 +3,37 @@ $(document).ready(function () {
     $("#footer").load("/pages/footer.html");
     $.get('/getAddiction', function (result) {
         if (result.success) {
-            const data = result.data;
-
-            let quitDate = new Date(data.quit_date);
-            let now = new Date();
-            let savingsDisplay = "";
-            let timeElapsedDisplay = "";
-
-            // if (quitDate > now) {
-            //     savingsDisplay = `$${data.savings_money}/day`;
-            // } else {
-            //     savingsDisplay = `$${data.savings_money * daysElapsed} saved so far`;
-            // }
-
-            $('#addictionName').text(`Addiction: ${data.addiction_name}`);
-            updateAddictionTableDisplay(data, savingsDisplay, "N/A");
+            updateAddictionTableDisplay(result.data);
 
             setInterval(function () {
-                const timeUTC = new Date();
-                const offset = 7 * 60 * 60 * 1000; // 7 hours difference from UTC
-                const now = new Date(timeUTC - offset);
-                savingsDisplay = createSavingsDisplay(data.savings_money, quitDate, now);
-                let diff = Math.abs(now - quitDate);
-
-                let days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                diff -= days * (1000 * 60 * 60 * 24);
-
-                let hours = Math.floor(diff / (1000 * 60 * 60));
-                diff -= hours * (1000 * 60 * 60);
-
-                let mins = Math.floor(diff / (1000 * 60));
-                diff -= mins * (1000 * 60);
-
-                let secs = Math.floor(diff / (1000));
-                const formattedSecs = secs.toString().padStart(2, '0');
-                const formattedMins = mins.toString().padStart(2, '0');
-                const formattedHours = hours.toString().padStart(2, '0');
-
-                if (quitDate < now) {
-                    timeElapsedDisplay = `${days} days, ${formattedHours}:${formattedMins}:${formattedSecs}`;
-                } else {
-                    timeElapsedDisplay = `${days + 1} days until quit date.` // Adding 1 because days is floored
-                }
-
-                updateAddictionTableDisplay(data, savingsDisplay, timeElapsedDisplay);
-
+                result.data.forEach((data, index) => {
+                    const quitDate = new Date(data.quit_date);
+                    const now = new Date();
+                    const timeElapsedDisplay = getTimeElapsedDisplay(quitDate, now);
+                    $(`#addictionData tbody tr:eq(${index}) td:eq(1)`).text(timeElapsedDisplay);
+                });
             }, 1000);
         }
     });
 
-    function updateAddictionTableDisplay(data, savingsDisplay, timeElapsedDisplay) {
+    function updateAddictionTableDisplay(addictions) {
+        let rowsHtml = addictions.map(data => {
+            const quitDate = new Date(data.quit_date);
+            const now = new Date();
+            const savingsDisplay = createSavingsDisplay(data.savings_money, quitDate, now);
+            const timeElapsedDisplay = getTimeElapsedDisplay(quitDate, now);
+
+            return `
+                <tr>
+                    <td>${data.quit_date}</td>
+                    <td>${timeElapsedDisplay}</td>
+                    <td>${savingsDisplay}</td>
+                    <td>${data.phone}</td>
+                    <td>${data.reasons}</td>
+                </tr>
+            `;
+        }).join('');
+
         const tableHtml = `
             <thead>
                 <tr>
@@ -64,21 +45,38 @@ $(document).ready(function () {
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>${data.quit_date}</td>
-                    <td>${timeElapsedDisplay}</td>
-                    <td>${savingsDisplay}</td>
-                    <td>${data.phone}</td>
-                    <td>${data.reasons}</td>
-                </tr>
+                ${rowsHtml}
             </tbody>
         `;
 
         $('#addictionData').html(tableHtml);
     }
 
+    function getTimeElapsedDisplay(quitDate, now) {
+        let diff = Math.abs(now - quitDate);
+        let days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        diff -= days * (1000 * 60 * 60 * 24);
+
+        let hours = Math.floor(diff / (1000 * 60 * 60));
+        diff -= hours * (1000 * 60 * 60);
+
+        let mins = Math.floor(diff / (1000 * 60));
+        diff -= mins * (1000 * 60);
+
+        let secs = Math.floor(diff / (1000));
+        const formattedSecs = secs.toString().padStart(2, '0');
+        const formattedMins = mins.toString().padStart(2, '0');
+        const formattedHours = hours.toString().padStart(2, '0');
+
+        if (quitDate < now) {
+            return `${days} days, ${formattedHours}:${formattedMins}:${formattedSecs}`;
+        } else {
+            return `${days + 1} days until quit date.`; // Adding 1 because days is floored
+        }
+    }
+
+
     function updateSleepTableDisplay(sleepSchedule) {
-        console.log("from dashboard.js: " +sleepSchedule)
         let tableRows = sleepSchedule.map((schedule) => {
             return `
                 <tr>
