@@ -3,18 +3,13 @@ $(document).ready(function () {
     $("#footer").load("/pages/footer.html");
     $.get('/getAddiction', function (result) {
         if (result.success) {
-            // Call the function to update the addiction table with all addiction data
             updateAddictionTableDisplay(result.data);
 
-            // Assuming you want the interval to update all the displayed records,
-            // you will need to make sure it can handle the array of data properly.
-            // This example assumes that the update only affects the time display.
             setInterval(function () {
                 result.data.forEach((data, index) => {
                     const quitDate = new Date(data.quit_date);
                     const now = new Date();
                     const timeElapsedDisplay = getTimeElapsedDisplay(quitDate, now);
-                    // Update just the time elapsed cell for each row
                     $(`#addictionData tbody tr:eq(${index}) td:eq(1)`).text(timeElapsedDisplay);
                 });
             }, 1000);
@@ -82,7 +77,6 @@ $(document).ready(function () {
 
 
     function updateSleepTableDisplay(sleepSchedule) {
-        console.log("from dashboard.js: " +sleepSchedule)
         let tableRows = sleepSchedule.map((schedule) => {
             return `
                 <tr>
