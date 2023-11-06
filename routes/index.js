@@ -252,6 +252,11 @@ router.delete('/deleteTask', ensureAuthenticated, async (req, res) => {
 });
 
 router.get('/getAddiction', ensureAuthenticated, (req, res) => {
+  let userAddiction = req.user.addiction;
+  for (let i = 0; i < userAddiction.length; i++) {
+    console.log("New entry: ")
+    console.log(userAddiction[i]);
+  }
   if (userAddiction) {
     res.json({ success: true, data: userAddiction });
   } else {
