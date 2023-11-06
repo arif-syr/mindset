@@ -1,0 +1,1261 @@
+
+server.js
+
+const express = require('express');
+const bodyParser = require('body-parser');
+const config = require('./modules/config');
+const routes = require('./routes');
+const app = express();
+const path = require('path');
+
+const session = require('express-session');
+
+const passport = require('passport');
+
+app.use(session({
+    secret: 'secretKey',
+    resave: false,
+    saveUninitialized: false
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
+
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.use('/', routes);
+
+app.listen(config.PORT, config.HOST, () => {
+    console.log(`Server started on http://${config.HOST}:${config.PORT}`);
+});
+#####################
+
+package.json
+
+{
+  "name": "mindset",
+  "version": "1.0.0",
+  "description": "Health and wellness application",
+  "main": "dashboard.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "mongoose": "^7.5.4",
+    "passport": "^0.6.0",
+    "passport-google-oauth20": "^2.0.0",
+    "passport-local": "^1.0.0"
+  }
+}
+
+#####################
+
+user.js
+
+const mongoose = require('mongoose');
+
+const userSchema = new mongoose.Schema({
+  googleId: String,
+  email: String,
+  tasks: [
+    {
+      name: String,
+      description: String,
+      duration: Number
+    }
+  ]
+});
+
+module.exports = mongoose.model('User', userSchema);
+#####################
+
+addiction.js
+
+$(document).ready(function () {
+  $("#navbar").load("/pages/navbar.html");
+  $("#footer").load("/pages/footer.html");
+
+  $('#contact_form').on('submit', function (e) {
+    e.preventDefault();
+
+    const addiction_name = $("#addiction_name").val();
+    if (!addiction_name) {
+      alert("Please provide an addiction name.");
+      return;
+    }
+
+    const quit_date = $("#quit_date").val();
+    if (!quit_date) {
+      alert("Please provide a quit date.");
+      return;
+    }
+
+    const savings_money = $("#savings_money").val();
+    if (!savings_money || isNaN(savings_money) || parseFloat(savings_money) < 0) {
+      alert("Please provide a valid savings amount.");
+      return;
+    }
+
+    const reasons = $("#reasons").val();
+    if (!reasons) {
+      alert("Please provide reasons for quitting.");
+      return;
+    }
+
+    $.post('/saveAddiction', $(this).serialize(), function (result) {
+      if (result.success) {
+        $('#success_message').removeClass('d-none');
+        $('#contact_form')[0].reset();
+      } else {
+        alert('Failed to save data. ' + (result.message || ''));
+      }
+    }).fail(function () {
+      alert('Failed to save data. Please try again.');
+    });
+  });
+});
+
+#####################
+
+register.js
+
+$(document).ready(function () {
+    $("#navbar").load("/pages/navbar.html");
+    $("#footer").load("/pages/footer.html");
+});
+#####################
+
+login.js
+
+$(document).ready(function () {
+    $("#navbar").load("/pages/navbar.html");
+    $("#footer").load("/pages/footer.html");
+});
+#####################
+
+focus.js
+
+$(document).ready(function () {
+  $("#navbar").load("/pages/navbar.html");
+  $("#footer").load("/pages/footer.html");
+
+  fetchTasks();
+
+  let tasks = [];
+
+  $("#modalTaskForm").on('submit', function (e) {
+    e.preventDefault();
+
+    let taskName = $("#modalTaskName").val().trim();
+    let taskDescription = $("#modalTaskDescription").val().trim();
+    let taskDuration = $("#taskDuration").val().trim();
+
+    $.post('/addTask', {
+      name: taskName,
+      description: taskDescription,
+      duration: taskDuration
+    }, function (data) {
+      if (data.success) {
+        updateTable();
+        $("#modalTaskName").val('');
+        $("#modalTaskDescription").val('');
+        $("#taskDuration").val('');
+        $("#taskModal").modal('hide');
+
+      } else {
+        alert('Failed to add task.');
+      }
+    });
+  });
+
+  function fetchTasks() {
+    $.get('/getTasks', function (data) {
+      if (data.success) {
+        tasks = data.tasks;
+        updateTable();
+      } else {
+        alert('Failed to fetch tasks.');
+      }
+    });
+  }
+
+  function updateTable() {
+    let tableBody = $("#taskTableBody");
+    tableBody.empty();
+
+    tasks.forEach((task, index) => {
+      let row = `<tr>
+                         <th scope="row">${index + 1}</th>
+                         <td>${task.name}</td>
+                         <td>${task.description}</td>
+                         <td>${task.duration} minutes</td>
+                         <td><span id="timer-${index}">00:00</span></td>
+                         <td>
+                         <button class="btn btn-success start-pause" data-index="${index}" data-status="start">Start</button>
+                         <button class="btn btn-warning restart" data-index="${index}">Restart</button>
+                         </td>
+                         <td><input type="checkbox" class="delete-task" data-id="${task._id}"></td>
+                       </tr>`;
+      tableBody.append(row);
+    });
+  }
+
+  $('#taskTableBody').on('click', '.start-pause', function () {
+    let btn = $(this);
+    let index = btn.data("index");
+    let status = btn.data("status");
+    let timerElement = $(`#timer-${index}`);
+    let duration = tasks[index].duration * 60;
+
+    if (status === "start") {
+      btn.data("status", "pause");
+      btn.text("Pause");
+      tasks[index].interval = setInterval(function () {
+        if (duration > 0) {
+          duration--;
+          let minutes = Math.floor(duration / 60);
+          let seconds = duration % 60;
+          timerElement.text(`${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+        } else {
+          clearInterval(tasks[index].interval);
+          btn.text("Done");
+          btn.prop("disabled", true);
+        }
+      }, 1000);
+    } else {
+      btn.data("status", "start");
+      btn.text("Start");
+      clearInterval(tasks[index].interval);
+    }
+  });
+
+  $('#taskTableBody').on('click', '.restart', function () {
+    let index = $(this).data("index");
+    let timerElement = $(`#timer-${index}`);
+    let startPauseBtn = $(`.start-pause[data-index="${index}"]`);
+
+    if (tasks[index].interval) {
+      clearInterval(tasks[index].interval);
+    }
+
+    timerElement.text("00:00");
+    startPauseBtn.text("Start");
+    startPauseBtn.data("status", "start");
+    startPauseBtn.prop("disabled", false);
+  });
+
+  $('#taskTableBody').on('click', '.delete-task', function () {
+    const taskId = $(this).data('id');
+
+    if (confirm('Are you sure you want to delete this task?')) {
+      $.ajax({
+        url: '/deleteTask',
+        type: 'DELETE',
+        data: {
+          id: taskId
+        },
+        success: function (data) {
+          if (data.success) {
+            alert('Task deleted successfully.');
+            fetchTasks();
+          } else {
+            alert('Failed to delete task.');
+          }
+        }
+      });
+    }
+  });
+
+});
+#####################
+
+dashboard.js
+
+$(document).ready(function () {
+    $("#navbar").load("/pages/navbar.html");
+    $("#footer").load("/pages/footer.html");
+    $.get('/getAddiction', function (result) {
+        if (result.success) {
+            const data = result.data;
+
+            let quitDate = new Date(data.quit_date);
+            let now = new Date();
+            let savingsDisplay = "";
+            let timeElapsedDisplay = "";
+
+            // if (quitDate > now) {
+            //     savingsDisplay = `$${data.savings_money}/day`;
+            // } else {
+            //     savingsDisplay = `$${data.savings_money * daysElapsed} saved so far`;
+            // }
+
+            $('#addictionName').text(`Addiction: ${data.addiction_name}`);
+            updateAddictionTableDisplay(data, savingsDisplay, "N/A");
+
+            setInterval(function () {
+                const timeUTC = new Date();
+                const offset = 7 * 60 * 60 * 1000; // 7 hours difference from UTC
+                const now = new Date(timeUTC - offset);
+                savingsDisplay = createSavingsDisplay(data.savings_money, quitDate, now);
+                let diff = Math.abs(now - quitDate);
+
+                let days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                diff -= days * (1000 * 60 * 60 * 24);
+
+                let hours = Math.floor(diff / (1000 * 60 * 60));
+                diff -= hours * (1000 * 60 * 60);
+
+                let mins = Math.floor(diff / (1000 * 60));
+                diff -= mins * (1000 * 60);
+
+                let secs = Math.floor(diff / (1000));
+                const formattedSecs = secs.toString().padStart(2, '0');
+                const formattedMins = mins.toString().padStart(2, '0');
+                const formattedHours = hours.toString().padStart(2, '0');
+
+                if (quitDate < now) {
+                    timeElapsedDisplay = `${days} days, ${formattedHours}:${formattedMins}:${formattedSecs}`;
+                } else {
+                    timeElapsedDisplay = `${days + 1} days until quit date.` // Adding 1 because days is floored
+                }
+
+                updateAddictionTableDisplay(data, savingsDisplay, timeElapsedDisplay);
+
+            }, 1000);
+        }
+    });
+
+    function updateAddictionTableDisplay(data, savingsDisplay, timeElapsedDisplay) {
+        const tableHtml = `
+            <thead>
+                <tr>
+                    <th>Quit Date</th>
+                    <th>Time Elapsed</th>
+                    <th>Savings</th>
+                    <th>Emergency Contact</th>
+                    <th>Reasons</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>${data.quit_date}</td>
+                    <td>${timeElapsedDisplay}</td>
+                    <td>${savingsDisplay}</td>
+                    <td>${data.phone}</td>
+                    <td>${data.reasons}</td>
+                </tr>
+            </tbody>
+        `;
+
+        $('#addictionData').html(tableHtml);
+    }
+
+    function createSavingsDisplay(savings_money, quitDate, now) {
+        let daysElapsed = Math.ceil((now - quitDate) / (1000 * 60 * 60 * 24));
+        if (quitDate > now) {
+            savingsDisplay = `$${savings_money}/day`;
+        } else {
+            savingsDisplay = `$${savings_money * (daysElapsed)} saved so far`;
+        }
+        return savingsDisplay;
+    }
+
+
+});
+#####################
+
+pomodoro.js
+
+$(document).ready(function () {
+  $("#navbar").load("/pages/navbar.html");
+  $("#footer").load("/pages/footer.html");
+
+  let timer;
+  let timeLeft;
+  let duration;
+
+  const updateTimerDisplay = () => {
+    let minutes = Math.floor(timeLeft / 60);
+    let seconds = timeLeft % 60;
+    $('#timer').text(`${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+  };
+
+  let isRunning = false;
+
+  const startTimer = () => {
+    clearInterval(timer);
+
+    timer = setInterval(() => {
+      timeLeft--;
+      updateTimerDisplay();
+      if (timeLeft <= 0) {
+        clearInterval(timer);
+        isRunning = false;
+        $('#startBtn').text("Start");
+      }
+    }, 1000);
+
+    isRunning = true;
+    $('#startBtn').text("Restart");
+  };
+
+
+  $('#pomodoroBtn').click(() => {
+    timeLeft = 25 * 60;
+    updateTimerDisplay();
+    $('body').css('background-color', 'lightred');
+  });
+
+  $('#shortBreakBtn').click(() => {
+    timeLeft = 5 * 60;
+    updateTimerDisplay();
+    $('body').css('background-color', 'lightblue');
+  });
+
+  $('#longBreakBtn').click(() => {
+    timeLeft = 15 * 60;
+    updateTimerDisplay();
+    $('body').css('background-color', 'lightgreen');
+  });
+
+  $('#startBtn').click(() => {
+    if ($('#startBtn').text() === "Restart") {
+      clearInterval(timer);
+      startTimer();
+    } else if ($('#startBtn').text() === "Start") {
+      startTimer();
+      $('#startBtn').text("Restart");
+    }
+  });
+
+});
+
+#####################
+
+nutrition.js
+
+$(document).ready(function () {
+  $("#navbar").load("/pages/navbar.html");
+  $("#footer").load("/pages/footer.html");
+  $('#searchBtn').click(function () {
+    let query = $('#searchQuery').val();
+    fetchNutritionData(query);
+  });
+});
+
+function fetchNutritionData(query) {
+  const API_KEY = 'h2vuZbeahobNA72PQX0a5pGfeXrekXHQ4AnbQmBK';
+  const url = `https://api.nal.usda.gov/fdc/v1/foods/search?api_key=${API_KEY}&query=${query}&pageSize=5`;
+
+  $.get(url, function (data) {
+    displayResults(data);
+  });
+}
+
+function displayResults(data) {
+  let html = '<h3>Top 5 Results</h3>';
+
+  for (let i = 0; i < data.foods.length; i++) {
+    const food = data.foods[i];
+
+    const calories = food.foodNutrients.find(nutrient => nutrient.nutrientId === 1008)?.value || "N/A";
+    const protein = food.foodNutrients.find(nutrient => nutrient.nutrientId === 1003)?.value || "N/A";
+    const carbs = food.foodNutrients.find(nutrient => nutrient.nutrientId === 1005)?.value || "N/A";
+    const fat = food.foodNutrients.find(nutrient => nutrient.nutrientId === 1004)?.value || "N/A";
+    const servingSize = food.servingSize || "N/A";
+    const servingSizeUnit = food.servingSizeUnit || "N/A";
+
+    html += `
+          <div class="card mb-3">
+              <div class="card-body">
+                  <h5 class="card-title">${food.description}</h5>
+                  <p>Serving Size: ${servingSize} ${servingSizeUnit}</p>
+                  <p>Calories: ${calories}</p>
+                  <p>Protein: ${protein}g</p>
+                  <p>Carbs: ${carbs}g</p>
+                  <p>Fat: ${fat}g</p>
+              </div>
+          </div>
+      `;
+  }
+
+  $('#results').html(html);
+}
+
+
+#####################
+
+navbar.html
+
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <img src="/images/leaf.png" alt="Logo" width="30" height="30" class="d-inline-block align-top">
+                Mindset
+            </a>
+            <div class="collapse navbar-collapse justify-content-center">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/nutrition">Nutrition</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Sleep</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/addiction">Addiction Recovery</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/focus">Focus</a>
+                    </li>
+                </ul>
+                <span id="welcome-message" class="navbar-text" style="color: #987554; margin-left: 200px;"></span>
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="settingsDropdown" role="button"
+                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="bi bi-gear"></i> Settings
+                        </a>
+                        <div class="dropdown-menu " aria-labelledby="settingsDropdown">
+                            <a class="dropdown-item" href="/login"><i class="bi bi-person"></i> Sign in</a>
+                            <a class="dropdown-item" href="/logout"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+#####################
+
+register.html
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="/images/leaf.png">
+    <title>Register | Mindset</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/styles/final.css">
+    <link href='https://fonts.googleapis.com/css?family=Alex Brush' rel='stylesheet'>
+    <script src="/scripts/register.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+
+<body >
+    <div id="navbar"></div>
+    <section class="vh-50">
+        <div class="row d-flex justify-content-center align-items-center h-100">
+            <div class="col-lg-12 col-xl-11">
+                <div class="card-body p-md-5">
+                    <div class="row justify-content-center">
+                        <div class="col-md-10 col-lg-6 col-xl-5 order-2 order-lg-1">
+                            <p style="color: #987554;" class="text-center h1 fw-bold mb-5 mx-1 mx-md-4 mt-4">Sign up</p>
+                            <form class="mx-1 mx-md-4" enctype="application/x-www-form-urlencoded">
+                                <div class="d-flex flex-row align-items-center mb-4">
+                                    <i class="fas fa-user fa-lg me-3 fa-fw"></i>
+                                    <div class="form-outline flex-fill mb-0">
+                                        <input type="text" name="name" id="form3Example1c" class="form-control"
+                                            placeholder="Your Name" />
+                                    </div>
+                                </div>
+
+                                <div class="d-flex flex-row align-items-center mb-4">
+                                    <i class="fas fa-envelope fa-lg me-3 fa-fw"></i>
+                                    <div class="form-outline flex-fill mb-0">
+                                        <input type="email" name="email" id="form3Example3c" class="form-control"
+                                            placeholder="Your Email" />
+                                    </div>
+                                </div>
+
+                                <div class="d-flex flex-row align-items-center mb-4">
+                                    <i class="fas fa-lock fa-lg me-3 fa-fw"></i>
+                                    <div class="form-outline flex-fill mb-0">
+                                        <input type="password" name="password" id="form3Example4c" class="form-control"
+                                            placeholder="Password" />
+                                    </div>
+                                </div>
+
+                                <div class="d-flex flex-row align-items-center mb-4">
+                                    <i class="fas fa-key fa-lg me-3 fa-fw"></i>
+                                    <div class="form-outline flex-fill mb-0">
+                                        <input type="password" id="form3Example4cd" class="form-control"
+                                            placeholder="Repeat your password" />
+                                    </div>
+                                </div>
+
+                                <div class="form-check d-flex mb-5">
+                                    <input class="form-check-input me-2" type="checkbox" value="" id="form2Example3c" />
+                                    <label style="color: #987554;" class="form-check-label" for="form2Example3">
+                                        I agree all statements in <a style="color: #987554;" href="#!">Terms of
+                                            service</a>
+                                    </label>
+                                </div>
+
+                                <div class="d-flex justify-content-center">
+                                    <button class="footer form button" type="submit"
+                                        class="btn btn-primary btn-lg">Register</button>
+                                </div>
+
+                            </form>
+
+                        </div>
+                        <div class="col-md-10 col-lg-6 col-xl-7 d-flex align-items-center order-1 order-lg-2">
+                            <img src="/images/leaf.png"
+                                class="img-fluid" alt="Sample image">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <br>
+    <hr>
+    <div id="footer"></div>
+
+    <script>
+        $('form').on('submit', function (e) {
+            e.preventDefault();
+            $.post('/register', $(this).serialize(), function (data) {
+                if (data.success) {
+                    window.location.href = '/login'; 
+                } else {
+                    alert('Registration failed.'); 
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
+#####################
+
+login.html
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="/images/leaf.png">
+    <title>Login | Mindset</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <!-- <link rel="stylesheet" href="/styles/final.css"> -->
+    <link href='https://fonts.googleapis.com/css?family=Alex Brush' rel='stylesheet'>
+    <script src="/scripts/login.js"></script>
+</head>
+
+<body >
+    <div id="navbar"></div>
+    <section class="vh-75">
+        <div class="container-fluid h-custom">
+            <div class="row d-flex justify-content-center align-items-center h-100">
+                <div class="col-md-9 col-lg-6 col-xl-5">
+                    <img src="/images/leaf.png"
+                        class="img-fluid" alt="Sample image">
+                </div>
+                <div class="col-md-8 col-lg-6 col-xl-4 offset-xl-1">
+                    <br>
+                    <p style="color: #987554;" class="text-center h1 fw-bold mb-5 mx-1 mx-md-4 mt-4">Login</p>
+                    <form action="/login" method="POST">
+                        <!-- Email input -->
+                        <div class="form-outline mb-4">
+                            <input type="email" name="email" id="form3Example3" class="form-control form-control-lg"
+                                placeholder="Email address" />
+                        </div>
+                        <!-- Password input -->
+                        <div class="form-outline mb-3">
+                            <input type="password" name="password" id="form3Example4" class="form-control form-control-lg"
+                                placeholder="Enter password" />
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="form-check mb-0">
+                                <input class="form-check-input me-2" type="checkbox" value="" id="form2Example3" />
+                                <label style="color: #987554;" class="form-check-label" for="form2Example3">
+                                    Remember me
+                                </label>
+                            </div>
+                            <a href="#!" class="text-body">Forgot password?</a>
+                        </div>
+                        <div class="text-center text-lg-start mt-4 pt-2">
+                            <button type="submit" class="footer form button"
+                                style="padding-left: 2.5rem; padding-right: 2.5rem;">Login</button>
+                            <p style="color: #987554;" class="fw-bold mt-2 pt-1 mb-0">Don't have an account? <a href="/register"
+                                    class="link-danger">Register</a>   
+                            </p>
+                            <p style="color: #987554;" class="fw-bold mt-2 pt-1 mb-0">OR <hr></p>
+                            <p style="color: #987554;" class="fw-bold mt-2 pt-1 mb-0">
+                                <a href="/auth/google">
+                                    <img src="https://img.icons8.com/color/16/000000/google-logo.png">
+                                    Login with Google</a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+    <br><br><br>
+    <hr>
+    <div id="footer"></div>
+</body>
+
+</html>
+#####################
+
+pomodoro.html
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="/images/leaf.png">
+    <title>Pomodoro | Mindset</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/styles/final.css">
+</head>
+
+<body style="background-color: rgb(212, 188, 188)">
+    <div id="navbar"></div>
+    <div id="content-wrapper" class="container mt-5">
+        <div class="text-center">
+            <button class="btn btn-outline-light" id="pomodoroBtn">Pomodoro</button>
+            <button class="btn btn-outline-light" id="shortBreakBtn">Short Break</button>
+            <button class="btn btn-outline-light" id="longBreakBtn">Long Break</button>
+        </div>
+
+        <div class="mt-5 text-center">
+            <div class="rounded-square" style="background-color: white; width: 200px; height: 200px; margin: 0 auto; line-height: 200px;">
+                <span id="timer">25:00</span>
+            </div>
+            <button class="btn btn-light mt-3" id="startBtn" style="color: red;">Start</button>
+        </div>
+    </div>
+    <div id="footer"></div>
+    <script src="/scripts/pomodoro.js"></script>
+</body>
+</html>
+#####################
+
+dashboard.html
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="/images/leaf.png">
+    <title>Dashboard | Mindset</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/styles/final.css">
+    <link href='https://fonts.googleapis.com/css?family=Alex Brush' rel='stylesheet'>
+    <script src="/scripts/dashboard.js"></script>
+</head>
+
+<body>
+    <div id="navbar"></div>
+    <div id="content-wrapper" class="container mt-5">
+        <div class="text-center">
+            <h3 id="addictionName"></h3>
+        </div>
+        <table class="table-borderless mx-auto" id="addictionData">
+        </table>
+    </div>
+    <hr>
+    <div id="footer"></div>
+</body>
+
+</html>
+#####################
+
+nutrition.html
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="/images/leaf.png">
+  <title>Nutrition | Mindset</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/styles/final.css">
+  <script src="/scripts/nutrition.js"></script>
+</head>
+
+<body>
+  <div id="navbar"></div>
+  <div id="content-wrapper" class="container mt-5">
+    <h2>Nutrition Search</h2>
+    <input type="text" id="searchQuery" class="form-control" placeholder="Enter dish name...">
+    <button id="searchBtn" class="btn btn-primary mt-2">Search</button>
+    <div id="results" class="mt-4"></div>
+  </div>
+  <div id="footer"></div>
+</body>
+
+</html>
+#####################
+
+footer.html
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mindset</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <!-- <link rel="stylesheet" href="./styles/final.css"> -->
+    <link href='https://fonts.googleapis.com/css?family=Alex Brush' rel='stylesheet'>
+</head>
+
+<footer class="pl-4">
+    <div class="row">
+        <div class="col">
+            <h5>About</h5>
+            <ul>
+                <li><a href="#">About Us</a></li>
+                <li><a href="mailto:info@mindset.com">info@mindset.com</a></li>
+            </ul>
+        </div>
+        <div class="col">
+            <h5>T & C</h5>
+            <ul>
+                <li><a href="#">Privacy Policy</a></li>
+            </ul>
+        </div>
+        <div class="col">
+            <h5>Be in the know</h5>
+            <p class="subscribe">Add your email to keep up to date</p>
+            <form action="/subscribe">
+                <input type="email" name="email" placeholder="Your email">
+                <button type="submit">Subscribe</button>
+            </form>
+        </div>
+    </div>
+    <br>
+    <div class="row">
+        <div class="col text-center copyright">
+            Copyright &copy; 2023, Mindset. <span id="currentDate"></span>
+        </div>
+    </div>
+</footer>
+
+#####################
+
+focus.html
+
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="/images/leaf.png">
+  <title>Focus | Mindset</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/styles/final.css">
+  <link href='https://fonts.googleapis.com/css?family=Alex Brush' rel='stylesheet'>
+  <script src="/scripts/focus.js"></script>
+</head>
+
+<body >
+  <div id="navbar"></div>
+  <br>
+  <div id ="content-wrapper" class="container-fluid">
+    <div class="container mt-5">
+      <div class="mt-3">
+        <a href="/pomodoro" class="btn btn-danger">Start Pomodoro Timer</a>
+      </div>
+      <br>
+      <form id="taskForm">
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#taskModal">Add Task</button>
+      </form>
+
+      <div class="modal" tabindex="-1" role="dialog" id="taskModal">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Add Task</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <form id="modalTaskForm">
+                <div class="form-group">
+                  <label for="modalTaskName">Task Name:</label>
+                  <input type="text" class="form-control" id="modalTaskName" required>
+                </div>
+                <div class="form-group">
+                  <label for="modalTaskDescription">Task Description:</label>
+                  <textarea class="form-control" id="modalTaskDescription" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="taskDuration">Duration (in minutes):</label>
+                  <input type="number" class="form-control" id="taskDuration" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Add Task</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="mt-5">Tasks</h2>
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Task Name</th>
+            <th scope="col">Task Description</th>
+            <th scope="col">Duration</th>
+            <th scope="col">Action</th>
+            <th scope="col">Timer</th>
+            <th scope="col">Delete Task</th>
+          </tr>
+        </thead>
+        <tbody id="taskTableBody">
+
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+  <br>
+  <hr>
+  <div id="footer"></div>
+</body>
+
+</html>
+#####################
+
+addiction.html
+
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="/images/leaf.png">
+  <title>Addiction Recovery | Mindset</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+  <link href='https://fonts.googleapis.com/css?family=Alex Brush' rel='stylesheet'>
+  <link rel="stylesheet" href="/styles/final.css">
+  <script src="/scripts/addiction.js" defer></script>
+</head>
+
+<body >
+  <div id="navbar"></div>
+
+  <div id="content-wrapper" class="container my-5">
+    <h2 class="mb-4">Addiction Form</h2>
+    <form action="/saveAddiction" method="post" id="contact_form">
+      <div class="mb-3">
+        <label for="addiction_name" class="form-label">Addiction Name</label>
+        <input type="text" class="form-control" id="addiction_name" name="addiction_name"
+          placeholder="What are you quitting?">
+      </div>
+
+      <div class="mb-3">
+        <label for="quit_date" class="form-label">When do you want to quit?</label>
+        <input type="date" class="form-control" id="quit_date" name="quit_date">
+      </div>
+
+      <div class="mb-3">
+        <label for="savings_money" class="form-label">Savings ($)</label>
+        <input type="number" class="form-control" id="savings_money" name="savings_money"
+          placeholder="How much do you spend a month on this?">
+      </div>
+
+      <div class="mb-3">
+        <label for="phone" class="form-label">Emergency Phone Contact (optional)</label>
+        <input type="tel" class="form-control" id="phone" name="phone" placeholder="(123)456-7890">
+      </div>
+
+      <div class="mb-3">
+        <label for="reasons" class="form-label">Why do you want to quit?</label>
+        <textarea class="form-control" id="reasons" name="reasons" rows="3"
+          placeholder="Write down your most significant reasons for quitting"></textarea>
+      </div>
+
+      <div class="alert alert-success d-none" role="alert" id="success_message">Success! Thanks for filling out the
+        form. We have received your data.</div>
+
+      <button type="submit" class="btn btn-warning">Send</button>
+    </form>
+  </div>
+
+  <div id="footer"></div>
+</body>
+
+</html>
+#####################
+
+index.js
+
+const express = require('express');
+const router = express.Router();
+const path = require('path');
+const passport = require('passport');
+const mongoose = require('mongoose');
+const session = require('express-session');
+
+const app = express();
+
+const LocalStrategy = require('passport-local').Strategy;
+
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+
+
+const connectDB = require('../MongoDB/modules/db');
+
+connectDB(true);
+
+const userSchema = new mongoose.Schema({
+  googleId: String,
+  password: String,
+  email: String,
+  tasks: [
+    {
+      name: String,
+      description: String,
+      duration: Number
+    }
+  ]
+});
+
+const User = mongoose.model('User', userSchema);
+
+
+const { google } = require('../MongoDB/modules/credentials');
+
+app.use(session({ secret: 'secretKey', resave: false, saveUninitialized: false }));
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.use(new GoogleStrategy(google,
+  async (accessToken, refreshToken, profile, done) => {
+    try {
+      let user = await User.findOne({ googleId: profile.id });
+      if (user) {
+        return done(null, user);
+      } else {
+        user = await new User({ googleId: profile.id, email: profile.emails[0].value }).save();
+        return done(null, user);
+      }
+    } catch (err) {
+      return done(err, null);
+    }
+  }
+));
+
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+
+passport.deserializeUser((id, done) => {
+  User.findById(id).then(user => {
+    done(null, user);
+  });
+});
+
+router.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/pages/dashboard.html'));
+});
+
+router.get('/nutrition', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/pages/nutrition.html'));
+});
+
+router.get('/dashboard', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/pages/dashboard.html'));
+});
+
+router.get('/focus', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/pages/focus.html'));
+});
+
+router.get('/pomodoro', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/pages/pomodoro.html'));
+});
+
+router.get('/startTask', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/pages/startTask.html'));
+});
+
+router.get('/auth/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+router.get('/auth/google/callback',
+  passport.authenticate('google', { failureRedirect: '/login' }),
+  (req, res) => {
+    res.redirect('/focus');
+  }
+);
+
+
+router.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/pages/login.html'));
+});
+
+router.post('/addTask', ensureAuthenticated, async (req, res) => {
+  const { name, description, duration } = req.body;
+  try {
+    req.user.tasks.push({ name, description, duration });
+    await req.user.save();
+    res.json({ success: true });
+  } catch (err) {
+    res.json({ success: false });
+  }
+});
+
+router.get('/getTasks', ensureAuthenticated, async (req, res) => {
+  try {
+    let tasks = req.user.tasks;
+    res.json({ success: true, tasks: tasks });
+  } catch (err) {
+    res.json({ success: false, message: "Error occurred while fetching tasks." });
+  }
+});
+
+router.get('/register', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/pages/register.html'));
+});
+
+router.post('/register', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.json({ success: false, message: "Email already in use." });
+    }
+
+    const newUser = new User({
+      email,
+      password
+    });
+
+    await newUser.save();
+    res.json({ success: true, message: "Registration successful" });
+
+  } catch (error) {
+    res.json({ success: false, message: "Error occurred during registration." });
+  }
+});
+
+
+function ensureAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  } else {
+    res.redirect('/login');
+  }
+}
+
+passport.use(new LocalStrategy({ usernameField: 'email' }, async (email, password, done) => {
+  try {
+    const user = await User.findOne({ email: email });
+    if (!user) {
+      return done(null, false, { message: 'Incorrect email.' });
+    }
+
+    if (user.password !== password) {
+      return done(null, false, { message: 'Incorrect password.' });
+    }
+    return done(null, user);
+  } catch (err) {
+    return done(err);
+  }
+}));
+
+router.post('/login', passport.authenticate('local', {
+  successRedirect: '/dashboard',
+  failureRedirect: '/login',
+  failureFlash: true
+}));
+
+router.delete('/deleteTask', ensureAuthenticated, async (req, res) => {
+  console.log("DELETE endpoint hit");
+  const taskId = req.body.id;
+
+  try {
+    const user = await User.findById(req.user._id);
+    user.tasks = user.tasks.filter(task => task._id.toString() !== taskId);
+    await user.save();
+    res.json({ success: true });
+  } catch (err) {
+    res.json({ success: false, message: 'Failed to delete task.' });
+  }
+});
+
+router.get('/addiction', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/pages/addiction.html'));
+});
+
+let userAddiction = null;
+
+router.post('/saveAddiction', ensureAuthenticated, (req, res) => {
+  const { addiction_name, quit_date, savings_money, phone, reasons } = req.body;
+  userAddiction = { addiction_name, quit_date, savings_money, phone, reasons };
+  res.json({ success: true });
+});
+
+router.get('/getAddiction', ensureAuthenticated, (req, res) => {
+  if (userAddiction) {
+    res.json({ success: true, data: userAddiction });
+  } else {
+    res.json({ success: false, message: "No addiction data found." });
+  }
+});
+
+module.exports = router;
+#####################
