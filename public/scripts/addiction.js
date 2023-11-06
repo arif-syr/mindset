@@ -5,6 +5,7 @@ $(document).ready(function () {
   $('#contact_form').on('submit', function (e) {
     e.preventDefault();
 
+    const phone = $("#phone").val();
     const addiction_name = $("#addiction_name").val();
     if (!addiction_name) {
       alert("Please provide an addiction name.");
@@ -29,7 +30,13 @@ $(document).ready(function () {
       return;
     }
 
-    $.post('/saveAddiction', $(this).serialize(), function (result) {
+    $.post('/saveAddiction', {
+      addiction_name: addiction_name,
+      quit_date: quit_date,
+      savings_money: savings_money,
+      phone: phone,
+      reasons: reasons
+    }, function (result) {
       if (result.success) {
         $('#success_message').removeClass('d-none');
         $('#contact_form')[0].reset();

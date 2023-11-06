@@ -31,7 +31,14 @@ const userSchema = new mongoose.Schema({
     bedtime: String,
     waketime: String
   }
-  ]
+  ],
+  addiction: [{
+    addiction_name: String,
+    quit_date: String,
+    savings_money: String,
+    phone: String,
+    reasons: String
+  }]
 });
 
 const User = mongoose.model('User', userSchema);
@@ -118,6 +125,24 @@ router.post('/addTask', ensureAuthenticated, async (req, res) => {
   const { name, description, duration } = req.body;
   try {
     req.user.tasks.push({ name, description, duration });
+    await req.user.save();
+    res.json({ success: true });
+  } catch (err) {
+    res.json({ success: false });
+  }
+});
+
+router.get('/addiction', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/pages/addiction.html'));
+});
+
+let userAddiction = null;
+
+router.post('/saveAddiction', ensureAuthenticated, async (req, res) => {
+  const { addiction_name, quit_date, savings_money, phone, reasons } = req.body;
+  userAddiction = { addiction_name, quit_date, savings_money, phone, reasons };
+  try {
+    req.user.addiction.push({addiction_name, quit_date, savings_money, phone, reasons});
     await req.user.save();
     res.json({ success: true });
   } catch (err) {
@@ -215,18 +240,6 @@ router.delete('/deleteTask', ensureAuthenticated, async (req, res) => {
   } catch (err) {
     res.json({ success: false, message: 'Failed to delete task.' });
   }
-});
-
-router.get('/addiction', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/pages/addiction.html'));
-});
-
-let userAddiction = null;
-
-router.post('/saveAddiction', ensureAuthenticated, (req, res) => {
-  const { addiction_name, quit_date, savings_money, phone, reasons } = req.body;
-  userAddiction = { addiction_name, quit_date, savings_money, phone, reasons };
-  res.json({ success: true });
 });
 
 router.get('/getAddiction', ensureAuthenticated, (req, res) => {
