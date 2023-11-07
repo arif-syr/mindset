@@ -136,3 +136,9 @@ td, th, tr {
     place-items: center;
     border: 1px solid #888;
 }
+
+.timer-display {
+    font-size: 48px;
+    font-weight: bold;
+}
+

@@ -2,62 +2,77 @@ $(document).ready(function () {
   $("#navbar").load("/pages/navbar.html");
   $("#footer").load("/pages/footer.html");
 
-  let timer;
-  let timeLeft;
-  let duration;
-
-  const updateTimerDisplay = () => {
-    let minutes = Math.floor(timeLeft / 60);
-    let seconds = timeLeft % 60;
-    $('#timer').text(`${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+  let timers = {
+    pomodoroTimer: { timeLeft: 25 * 60, timerInstance: null },
+    shortBreakTimer: { timeLeft: 5 * 60, timerInstance: null },
+    longBreakTimer: { timeLeft: 15 * 60, timerInstance: null }
   };
 
-  let isRunning = false;
+  const updateTimerDisplay = (timerId) => {
+    let minutes = Math.floor(timers[timerId].timeLeft / 60);
+    let seconds = timers[timerId].timeLeft % 60;
+    $('#' + timerId).text(`${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+  };
 
-  const startTimer = () => {
-    clearInterval(timer);
-
-    timer = setInterval(() => {
-      timeLeft--;
-      updateTimerDisplay();
-      if (timeLeft <= 0) {
-        clearInterval(timer);
-        isRunning = false;
-        $('#startBtn').text("Start");
+  const startTimer = (timerId, duration) => {
+    stopTimer(timerId); 
+    timers[timerId].timeLeft = duration;
+    timers[timerId].timerInstance = setInterval(() => {
+      timers[timerId].timeLeft--;
+      updateTimerDisplay(timerId);
+      if (timers[timerId].timeLeft <= 0) {
+        stopTimer(timerId);
       }
     }, 1000);
-
-    isRunning = true;
-    $('#startBtn').text("Restart");
   };
 
+  const stopTimer = (timerId) => {
+    clearInterval(timers[timerId].timerInstance);
+  };
 
-  $('#pomodoroBtn').click(() => {
-    timeLeft = 25 * 60;
-    updateTimerDisplay();
-    $('body').css('background-color', 'lightred');
-  });
+  const resetTimer = (timerId, duration) => {
+    stopTimer(timerId);
+    timers[timerId].timeLeft = duration;
+    updateTimerDisplay(timerId);
+  };
 
-  $('#shortBreakBtn').click(() => {
-    timeLeft = 5 * 60;
-    updateTimerDisplay();
-    $('body').css('background-color', 'lightblue');
-  });
+  // Button actions
+  $('.controlBtn').on('click', function () {
+    const timerId = $(this).data('timer');
+    const action = $(this).data('action');
+    const duration = parseInt($(this).data('duration'));
 
-  $('#longBreakBtn').click(() => {
-    timeLeft = 15 * 60;
-    updateTimerDisplay();
-    $('body').css('background-color', 'lightgreen');
-  });
-
-  $('#startBtn').click(() => {
-    if ($('#startBtn').text() === "Restart") {
-      clearInterval(timer);
-      startTimer();
-    } else if ($('#startBtn').text() === "Start") {
-      startTimer();
-      $('#startBtn').text("Restart");
+    if (action === 'start') {
+      startTimer(timerId, duration);
+    } else if (action === 'stop') {
+      stopTimer(timerId);
+    } else if (action === 'reset') {
+      resetTimer(timerId, duration);
     }
   });
 
+  $('.controlBtn').on('click', function () {
+    const timerId = $(this).data('timer');
+    const action = $(this).data('action');
+    const duration = parseInt($(this).data('duration'), 10);
+  
+    switch(action) {
+      case 'start':
+        startTimer(timerId, duration);
+        break;
+      case 'stop':
+        stopTimer(timerId);
+        break;
+      case 'reset':
+        resetTimer(timerId, duration);
+        break;
+      default:
+        console.log('Invalid action');
+    }
+  });
+
+  updateTimerDisplay('pomodoroTimer');
+  updateTimerDisplay('shortBreakTimer');
+  updateTimerDisplay('longBreakTimer');
 });
+
