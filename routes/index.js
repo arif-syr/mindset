@@ -16,6 +16,20 @@ const connectDB = require('../MongoDB/modules/db');
 
 connectDB(true);
 
+const emailSubscriptionSchema = new mongoose.Schema({
+  email: {
+    type: String,
+    required: true,
+    unique: true
+  },
+  dateSubscribed: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+const EmailSubscription = mongoose.model('EmailSubscription', emailSubscriptionSchema);
+
 const userSchema = new mongoose.Schema({
   googleId: String,
   password: String,
@@ -338,6 +352,24 @@ router.get('/logout', function(req, res, next){
     if (err) { return next(err); }
     res.redirect('/');
   });
+});
+
+router.post('/subscribe', async (req, res) => {
+  const { email } = req.body; 
+
+  if (!email) {
+    return res.status(400).json({ success: false, message: 'Email is required.' });
+  }
+  try {
+    const newSubscription = new EmailSubscription({ email });
+    await newSubscription.save();
+    res.redirect('/');
+  } catch (error) {
+    if (error.code === 11000) { 
+      return res.status(409).json({ success: false, message: 'Email already subscribed.' });
+    }
+    res.status(500).json({ success: false, message: 'Error subscribing email.', error: error.message });
+  }
 });
 
 module.exports = router;
