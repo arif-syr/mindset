@@ -95,7 +95,7 @@ $(document).ready(function () {
                     <th>Waketime</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="successSleep">
                 ${tableRows}
             </tbody>
         `;

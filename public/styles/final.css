@@ -16,8 +16,46 @@ body {
     flex-direction: column;
 }
 
-#content-wrapper {
+.dashboard-header {
+    text-align: center;
+}
+
+td, th, tr {
+    text-align: center;
+}
+
+#addictionData {
+    width: 60%;
+    margin: 0 auto;
+    border-collapse: collapse;
+}
+
+#addictionData th,
+#addictionData td {
+    text-align: center;
+}
+
+#addictionData tr,
+#sleepData th,
+#sleepData td {
+    border-bottom: 1px solid #000;
+    border-top: 1px solid #000;
+}
+
+#bedtimeRoutineContainer th,
+#bedtimeRoutineContainer td {
+    border-bottom: 1px solid #000;
+}
+
+#content-wrapper, #content-wrapper-sleep {
     flex: 1;
+}
+
+#bedtimeRoutineContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
 }
 
 #addictionData {
