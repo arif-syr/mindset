@@ -206,15 +206,19 @@ $(document).ready(function () {
     function fetchAddictions() {
         $.get('/getAddiction', function (result) {
             if (result.success) {
-                var addictionsHtml = '<ul>';
+                var addictionsHtml = '<table id="cravings-table">';
+                addictionsHtml += `<tr> <th>Addiction</th> <th>Log cravings</th></tr>`
                 result.data.forEach(function(addiction, index) {
-                    addictionsHtml += `
-                        <li>
+                    addictionsHtml += `<tr>
+                        <th>
                             ${addiction.addiction_name}
+                        </th>
+                        <th>
                             <input type="number" id="cravingInput${index}" placeholder="Enter number of cravings">
-                        </li>`;
+                        </th>
+                    </tr>`;
                 });
-                addictionsHtml += '</ul>';
+                addictionsHtml += '</table>';
                 addictionsHtml += '<button id="saveAllCravings">Save All</button>'; 
                 $('#addictionList').html(addictionsHtml);
                 $('#addictionModal').show();
