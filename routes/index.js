@@ -42,7 +42,11 @@ const userSchema = new mongoose.Schema({
   bedtimeRoutine: {
     days: [String],
     weekStarting: Date
-  }
+  }, 
+  cravings: [{
+    addiction_name: String,
+    craving: Number
+  }],
 });
 
 const User = mongoose.model('User', userSchema);
@@ -164,6 +168,7 @@ router.post('/saveSleepSchedule', ensureAuthenticated, async (req, res) => {
     res.json({ success: false, message: 'Failed to save sleep schedule.' +err});
   }
 });
+
 
 router.get('/getTasks', ensureAuthenticated, async (req, res) => {
   try {
@@ -301,6 +306,21 @@ router.get('/getAddiction', ensureAuthenticated, (req, res) => {
     res.json({ success: true, data: userAddiction });
   } else {
     res.json({ success: false, message: "No addiction data found." });
+  }
+});
+
+router.post('/saveCravings', ensureAuthenticated, async (req, res) => {
+  const { cravings } = req.body; 
+  try {
+    req.user.cravings = cravings.map(craving => ({
+      addiction_name: craving.addictionName,
+      craving: parseInt(craving.cravingsCount) 
+    }));
+
+    await req.user.save();
+    res.json({ success: true, message: 'Cravings updated successfully.' });
+  } catch (err) {
+    res.json({ success: false, message: 'Failed to update cravings.', error: err.message });
   }
 });
 
