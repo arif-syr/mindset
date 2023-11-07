@@ -25,6 +25,7 @@ $(document).ready(function () {
 
             return `
                 <tr>
+                    <td>${data.addiction_name}</td>
                     <td>${data.quit_date}</td>
                     <td>${timeElapsedDisplay}</td>
                     <td>${savingsDisplay}</td>
@@ -37,6 +38,7 @@ $(document).ready(function () {
         const tableHtml = `
             <thead>
                 <tr>
+                    <th>Addiction Name</th>
                     <th>Quit Date</th>
                     <th>Time Elapsed</th>
                     <th>Savings</th>

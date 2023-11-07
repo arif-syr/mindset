@@ -5,7 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="436392ff-0767-4b0a-813a-d5119a34d7f7" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/routes/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/routes/index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/scripts/dashboard.js" beforeDir="false" afterPath="$PROJECT_DIR$/public/scripts/dashboard.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -37,7 +37,7 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "WebServerToolWindowFactoryState": "false",
-    "git-widget-placeholder": "showAddictionData",
+    "git-widget-placeholder": "main",
     "last_opened_file_path": "/Users/arif/Documents/San_Francisco/USF/College_docs/Fall-2023/CS601/mindset",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
