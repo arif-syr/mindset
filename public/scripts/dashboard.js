@@ -180,13 +180,8 @@ $(document).ready(function () {
     checkAndCreateBedtimeRoutineForm();
 
     function displayBedtimeRoutineTable(bedtimeRoutineDays) {
-        // Create the table headings using the days of the routine
         const tableHeadings = bedtimeRoutineDays.map(day => `<th>${day}</th>`).join('');
-    
-        // Generate the ticks for each day
         const tableTicks = bedtimeRoutineDays.map(() => `<td>✔️</td>`).join('');
-    
-        // Assemble the table HTML
         const tableHtml = `
             <table id="bedtimeRoutineTable">
                 <thead>
@@ -201,7 +196,68 @@ $(document).ready(function () {
             </table>
         `;
     
-        // Insert the table HTML into the designated container
         $('#bedtimeRoutineContainer').html(tableHtml);
     }
+
+    $('#addCravingsBtn').click(function() {
+        fetchAddictions();
+    });
+
+    function fetchAddictions() {
+        $.get('/getAddiction', function (result) {
+            if (result.success) {
+                var addictionsHtml = '<ul>';
+                result.data.forEach(function(addiction, index) {
+                    addictionsHtml += `
+                        <li>
+                            ${addiction.addiction_name}
+                            <input type="number" id="cravingInput${index}" placeholder="Enter number of cravings">
+                        </li>`;
+                });
+                addictionsHtml += '</ul>';
+                addictionsHtml += '<button id="saveAllCravings">Save All</button>'; 
+                $('#addictionList').html(addictionsHtml);
+                $('#addictionModal').show();
+
+                
+                $('#saveAllCravings').click(function() {
+                    saveAllCravings(result.data);
+                });
+            } else {
+                alert('Failed to fetch addictions.');
+            }
+        });
+    }
+
+    function saveAllCravings(addictions) {
+        var cravingsData = addictions.map(function(addiction, index) {
+            var cravingsCount = $(`#cravingInput${index}`).val();
+            return {
+                addictionName: addiction.addiction_name,
+                cravingsCount: cravingsCount
+            };
+        });
+
+        $.post('/saveCravings', { cravings: cravingsData }, function(result) {
+            if (result.success) {
+                alert('Cravings saved successfully!');
+                $('#addictionModal').hide();
+            } else {
+                alert('Failed to save cravings.');
+            }
+        });
+    }
+    
+
+    $('.close').click(function() {
+        $('#addictionModal').hide();
+    });
+
+    $(window).click(function(event) {
+        if ($(event.target).is('#addictionModal')) {
+            $('#addictionModal').hide();
+        }
+    });
+
+
 });
