@@ -121,7 +121,7 @@ $(document).ready(function () {
                 const sleepSchedule = result.sleepSchedule;
                 updateSleepTableDisplay(sleepSchedule);
             } else {
-                alert('Failed to fetch sleep data.');
+                console.log('Failed to fetch sleep data.');
             }
         });
     }
@@ -173,7 +173,7 @@ $(document).ready(function () {
                     displayBedtimeRoutineTable(bedtimeRoutine.days);
                 }
             } else {
-                alert('Failed to fetch bedtime routine.');
+                console.log('Failed to fetch bedtime routine.');
             }
         });
     }
@@ -228,7 +228,7 @@ $(document).ready(function () {
                     saveAllCravings(result.data);
                 });
             } else {
-                alert('Failed to fetch addictions.');
+                console.log('Failed to fetch addictions.');
             }
         });
     }
@@ -271,7 +271,7 @@ $(document).ready(function () {
                 const data = cravings.map(craving => craving.craving);
                 renderChart(labels, data); 
             } else {
-                alert('Failed to fetch sleep data.');
+                console.log('Failed to fetch sleep data.');
             }
         });
     }
