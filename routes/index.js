@@ -183,6 +183,15 @@ router.get('/getSleep', ensureAuthenticated, async (req, res) => {
   }
 });
 
+router.get('/getRoutine', ensureAuthenticated, async (req, res) => {
+  try {
+    let bedtimeRoutine = req.user.bedtimeRoutine;
+    res.json({ success: true, bedtimeRoutine : bedtimeRoutine });
+  } catch (err) {
+    res.json({ success: false, message: "Error occurred while fetching sleepSchedule." });
+  }
+});
+
 router.post('/saveBedtimeRoutine', ensureAuthenticated, async (req, res) => {
   const { days } = req.body; 
   const startOfWeek = new Date(); 

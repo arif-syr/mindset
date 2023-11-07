@@ -160,5 +160,46 @@ $(document).ready(function () {
         });
       }
 
-      createBedtimeRoutineForm()
+      function checkAndCreateBedtimeRoutineForm() {
+        $.get('/getRoutine', function (result) {
+            if (result.success) {
+                const bedtimeRoutine = result.bedtimeRoutine;
+                console.log("this is routine " +bedtimeRoutine.days)
+                if (bedtimeRoutine.days.length === 0) {
+                    createBedtimeRoutineForm();
+                } else {
+                    displayBedtimeRoutineTable(bedtimeRoutine.days);
+                }
+            } else {
+                alert('Failed to fetch bedtime routine.');
+            }
+        });
+    }
+    checkAndCreateBedtimeRoutineForm();
+
+    function displayBedtimeRoutineTable(bedtimeRoutineDays) {
+        // Create the table headings using the days of the routine
+        const tableHeadings = bedtimeRoutineDays.map(day => `<th>${day}</th>`).join('');
+    
+        // Generate the ticks for each day
+        const tableTicks = bedtimeRoutineDays.map(() => `<td>✔️</td>`).join('');
+    
+        // Assemble the table HTML
+        const tableHtml = `
+            <table id="bedtimeRoutineTable">
+                <thead>
+                    <tr>
+                        <th colspan="${bedtimeRoutineDays.length}">Sleep Schedule followed on</th>
+                    </tr>
+                    <tr>${tableHeadings}</tr>
+                </thead>
+                <tbody>
+                    <tr>${tableTicks}</tr>
+                </tbody>
+            </table>
+        `;
+    
+        // Insert the table HTML into the designated container
+        $('#bedtimeRoutineContainer').html(tableHtml);
+    }
 });
