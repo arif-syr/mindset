@@ -61,10 +61,6 @@ td, th, tr {
     flex: 1;
 }
 
-#addCravingsBtn {
-
-}
-
 #bedtimeRoutineContainer {
     display: flex;
     justify-content: center;

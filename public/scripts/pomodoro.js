@@ -36,7 +36,6 @@ $(document).ready(function () {
     updateTimerDisplay(timerId);
   };
 
-  // Button actions
   $('.controlBtn').on('click', function () {
     const timerId = $(this).data('timer');
     const action = $(this).data('action');

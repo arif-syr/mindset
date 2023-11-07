@@ -231,9 +231,8 @@ router.post('/saveBedtimeRoutine', ensureAuthenticated, async (req, res) => {
 
 const cron = require('node-cron');
 
-cron.schedule('0 0 * * 1', async () => { // Runs every Monday at 00:00
+cron.schedule('0 0 * * 1', async () => { 
   try {
-    // Clear bedtime routine for all users
     await User.updateMany({}, {
       $set: { 'bedtimeRoutine.days': [], 'bedtimeRoutine.weekStarting': new Date() }
     });
