@@ -285,7 +285,7 @@ $(document).ready(function () {
                 labels: labels,
                 datasets: [{
                     label: 'Cravings',
-                    backgroundColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgb(29,123,255)',
                     borderColor: 'rgb(255, 99, 132)',
                     data: data
                 }]
