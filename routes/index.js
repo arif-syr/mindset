@@ -324,5 +324,14 @@ router.post('/saveCravings', ensureAuthenticated, async (req, res) => {
   }
 });
 
+router.get('/getCravings', ensureAuthenticated, (req, res) => {
+  let cravings = req.user.cravings;
+  if (cravings) {
+    res.json({ success: true, data: cravings });
+  } else {
+    res.json({ success: false, message: "No addiction data found." });
+  }
+});
+
 
 module.exports = router;

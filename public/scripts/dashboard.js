@@ -259,5 +259,37 @@ $(document).ready(function () {
         }
     });
 
+    function fetchCravings() {
+        $.get('/getCravings', function (result) {
+            if (result.success) {
+                const cravings = result.data;
+                const labels = cravings.map(craving => craving.addiction_name);
+                const data = cravings.map(craving => craving.craving);
+                renderChart(labels, data); 
+            } else {
+                alert('Failed to fetch sleep data.');
+            }
+        });
+    }
+    fetchCravings();
 
+    function renderChart(labels, data) {
+        var ctx = document.getElementById('cravingsChart').getContext('2d');
+        var chart = new Chart(ctx, {
+            type: 'bar', 
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Cravings',
+                    backgroundColor: 'rgb(255, 99, 132)',
+                    borderColor: 'rgb(255, 99, 132)',
+                    data: data
+                }]
+            },
+    
+            options: {}
+        });
+    }
+
+    
 });
